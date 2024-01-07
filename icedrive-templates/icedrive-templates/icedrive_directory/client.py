@@ -16,7 +16,18 @@ class ClientApp(Ice.Application):
             print('el proxy no es valido')
             sys.exit(1)
 
-
+        while True: 
+            print("Option menu:")
+            option = input("1. getFiles \n2. getBlobId \n 3. linkFile \n4. unlinkFile \n5. getChilds  \n6.getChild \ n7. createChild \n8. removeChild \n9. getParent \n10. Exit\n")
+            if option == 1:
+                files_list = directory_proxy.getFiles()
+            elif option == 2:
+                blob_name = input("Ingrese el nombre del blob: ")
+                directory_proxy.getBlobId(blob_name)
+            elif option == 3:
+                files_link = input("Ingrese el nombre del blob a linkear: ")
+                files_id = input("Ingrese el id del blob a linkear: ")
+                directory_proxy.linkFile(files_link, files_id)
         
 
         return 0 

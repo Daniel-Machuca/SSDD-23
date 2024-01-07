@@ -12,15 +12,18 @@ import IceStorm
 class Directory(IceDrive.Directory):
     """Implementation of the IceDrive.Directory interface."""
     
-    def __init__(self, name, filename, parent=None):
+    def __init__(self, name, parent=None):
         self.name = name
-        self.filename = filename
         self.parent = parent
         self.children = []
 
-
     def getParent(self, current: Ice.Current = None) -> IceDrive.DirectoryPrx:
         """Return the proxy to the parent directory, if it exists. None in other case."""
+        if self.parent:
+            return IceDrive.DirectoryPrx.uncheckedCast(self.parent, category="directory")
+        else:
+            # Si el directorio actual no tiene un padre (nodo raíz), devolver None
+            return None
 
     def getChilds(self, current: Ice.Current = None) -> List[str]:
         """Return a list of names of the directories contained in the directory."""
@@ -76,6 +79,18 @@ class Directory(IceDrive.Directory):
 
     def removeChild(self, name: str, current: Ice.Current = None) -> None:
         """Remove the child directory with the given name if exists."""
+        child_to_rem = None
+        for child in self.children:
+            if child.user == name:
+                child_to_rem = child
+                break
+
+        if child_to_rem:
+            self.children.remove(child_to_rem)
+            # Elimina el directorio hijo del adaptador
+            current.adapter.remove(current.id)
+        else:
+            raise ValueError(f"No se encontró un directorio hijo con el nombre dado: {name}.")
 
     def getFiles(self, current: Ice.Current = None) -> List[str]:
         """Return a list of the files linked inside the current directory."""
@@ -150,6 +165,11 @@ class Directory(IceDrive.Directory):
         except Exception as e:
             print(f"Error al eliminar el archivo {filename}: {e}")
 
+    def listChildren(self, current: Ice.Current = None) -> List[IceDrive.EntryPrx]:
+        children_prx = []
+        for child in self.children:
+            children_prx.append(IceDrive.EntryPrx.uncheckedCast(child, category="directory"))
+        return children_prx
 
 """----------------------------------------------------------------------------------------------------------------------"""
 
